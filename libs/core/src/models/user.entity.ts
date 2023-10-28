@@ -5,7 +5,7 @@ import { Role } from './role.entity';
 
 @Entity('users')
 export class User extends AbstractEntity<User> {
-  @Column()
+  @Column({ select: false })
   password: string;
 
   @Column({ unique: true })

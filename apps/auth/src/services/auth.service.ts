@@ -17,11 +17,37 @@ export class AuthService {
     private usersRepository: Repository<User>,
   ) {}
 
-  getUser(id: number) {
-    return this.usersRepository.createQueryBuilder('user')
-      .where('user.id = :id', { id })
+  // NOTE: for test purpose
+  async getUser(id: number) {
+    // const user = await this.usersRepository.findOne({
+    //   select: {
+    //     email: true,
+    //     username: true,
+    //     roles: true
+    //   },
+    //   relations: {
+    //     roles: true
+    //   },
+    //   where: {
+    //     id: id
+    //   }
+    // });
+
+    // NOTE: With QueryBuilder
+    const user = await this.usersRepository.createQueryBuilder('user')
+      .select(['user.id', 'user.username'])
+      .where('user.id = :userId', { userId: id })
       .leftJoinAndSelect('user.roles', 'roles')
       .getOne();
+
+    if (!user) {
+      throw new HttpException(
+        'User not found',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    return user;
   }
 
   public async registerUser(createUserDto: CreateUserDto): Promise<{ message: string }> {
@@ -47,8 +73,15 @@ export class AuthService {
   }
 
   public async login(userPayload: LogInUserDto): Promise<AuthResponseDto> {
-    const user = await this.usersRepository.findOneBy({
-      email: userPayload.email,
+    const user = await this.usersRepository.findOne({
+      where: {
+        email: userPayload.email
+      },
+      select: {
+        id: true,
+        email: true,
+        password: true,
+      }
     });
 
     if (user === null) {
@@ -57,7 +90,7 @@ export class AuthService {
         HttpStatus.BAD_REQUEST,
       );
     }
-    const { id, email, username, password } = user;
+    const { id, email, password } = user;
     const isPasswordValid = await this.authUtilsService.comparePasswords(
       userPayload.password,
       password,
