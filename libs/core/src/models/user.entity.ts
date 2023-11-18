@@ -1,4 +1,4 @@
-import { Entity, Column, PrimaryGeneratedColumn, ManyToMany, JoinTable } from 'typeorm';
+import { Entity, Column, ManyToMany, JoinTable } from 'typeorm';
 
 import { AbstractEntity } from '../database';
 import { Role } from './role.entity';

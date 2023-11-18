@@ -23,8 +23,6 @@ async function bootstrap() {
   app.useLogger(app.get(Logger));
   app.setGlobalPrefix('api');
 
-  console.log(configService.get('TCP_PORT'), configService.get('HTTP_PORT_AUTH'))
-
   await app.startAllMicroservices();
   await app.listen(configService.get('HTTP_PORT_AUTH'));
 }
