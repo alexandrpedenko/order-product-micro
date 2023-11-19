@@ -13,6 +13,7 @@ lerna-debug.log*
 
 .env
 pgdata
+data
 
 # OS
 .DS_Store

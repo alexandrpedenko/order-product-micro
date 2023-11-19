@@ -11,6 +11,7 @@ services:
       - '3000:3000'
     volumes:
       - .:/usr/src/app
+      - /usr/src/app/node_modules
     depends_on:
       - postgres
     networks:
@@ -32,13 +33,14 @@ services:
       - '3001:3001'
     volumes:
       - .:/usr/src/app
+      - /usr/src/app/node_modules
 
   postgres:
     image: postgres:15.1
     networks:
       - postgres
     volumes:
-      - /data/postgres:/data/postgres
+      - ./data/postgres:/var/lib/postgresql/data
     env_file:
       - .env
  
@@ -49,7 +51,7 @@ services:
     ports:
       - "8080:80"
     volumes:
-      - /data/pgadmin:/root/.pgadmin
+      - ./data/pgadmin:/var/lib/pgadmin
     env_file:
       - .env
 
