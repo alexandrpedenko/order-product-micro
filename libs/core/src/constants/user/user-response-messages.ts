@@ -5,4 +5,5 @@ export const RESPONSE_MESSAGES = {
   invalidUserCredentials: 'Invalid user credentials',
   userNotRegistered: 'Such a user is not registered',
   userNotFound: 'User not found',
+  userUnauthorized: 'User is not authorized',
 };

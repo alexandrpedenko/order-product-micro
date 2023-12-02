@@ -3,16 +3,16 @@ import { HttpException, HttpStatus, Injectable, NotFoundException } from '@nestj
 import { InjectRepository } from '@nestjs/typeorm';
 import { paginate } from 'nestjs-typeorm-paginate';
 
-import { CreateProductDto } from './dto/request/create-product.dto';
-import { UpdateProductDto } from './dto/request/update-product.dto';
 import { Category, Product } from '@core/core';
+
+import { CreateProductDto, UpdateProductDto } from './dto/request';
 
 @Injectable()
 export class ProductsService {
   constructor(
     @InjectRepository(Product)
     private productRepository: Repository<Product>,
-  ) {}
+  ) { }
 
   async create(createProductDto: CreateProductDto) {
     const product = this.productRepository.create({
@@ -54,7 +54,7 @@ export class ProductsService {
   }
 
   async update(id: number, updateProductDto: UpdateProductDto) {
-    const updated = await this.productRepository.update({id}, updateProductDto);
+    const updated = await this.productRepository.update({ id }, updateProductDto);
     if (updated.affected === 0) {
       throw new NotFoundException('Product not found');
     }

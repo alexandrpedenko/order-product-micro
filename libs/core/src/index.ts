@@ -7,3 +7,5 @@ export * from './interceptors';
 export * from './filters';
 export * from './types';
 export * from './logger';
+export * from './rabbitmq';
+export * from './guards';

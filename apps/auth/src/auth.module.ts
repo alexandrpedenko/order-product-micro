@@ -10,6 +10,7 @@ import {
   Role,
   User
 } from '@core/core';
+import { RabbitModule } from '@core/core/rabbitmq';
 
 import { AuthController } from './controller/auth.controller';
 import { JwtStrategy } from './strategies/jwt.strategy';
@@ -34,7 +35,8 @@ import { AuthUtilsService } from './services/auth-utils.service';
     }),
     LoggerModule,
     DatabaseModule,
-    DatabaseModule.forFeature([User, Role])
+    DatabaseModule.forFeature([User, Role]),
+    RabbitModule
   ],
   controllers: [AuthController],
   providers: [

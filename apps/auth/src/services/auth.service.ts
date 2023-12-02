@@ -1,6 +1,7 @@
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { RpcException } from '@nestjs/microservices';
 
 import { RESPONSE_MESSAGES, Role, User } from '@core/core';
 
@@ -15,36 +16,40 @@ export class AuthService {
 
     @InjectRepository(User)
     private usersRepository: Repository<User>,
-  ) {}
+  ) { }
 
-  // NOTE: for test purpose
-  async getUser(id: number) {
-    // const user = await this.usersRepository.findOne({
-    //   select: {
-    //     email: true,
-    //     username: true,
-    //     roles: true
-    //   },
-    //   relations: {
-    //     roles: true
-    //   },
-    //   where: {
-    //     id: id
-    //   }
-    // });
-
-    // NOTE: With QueryBuilder
-    const user = await this.usersRepository.createQueryBuilder('user')
+  // TODO: !!! Move to separate USER  repository !!!
+  async getUserFromDb(id: number) {
+    return await this.usersRepository.createQueryBuilder('user')
       .select(['user.id', 'user.username'])
       .where('user.id = :userId', { userId: id })
       .leftJoinAndSelect('user.roles', 'roles')
       .getOne();
+  }
+
+  // NOTE: For testing purpose
+  async getUser(id: number) {
+    const user = await this.getUserFromDb(id);
 
     if (!user) {
       throw new HttpException(
         'User not found',
         HttpStatus.NOT_FOUND,
       );
+    }
+
+    return user;
+  }
+
+  // NOTE: For microservices testing purpose
+  async getUserForAnotherService(id: number) {
+    const user = await this.getUserFromDb(id);
+
+    if (!user) {
+      throw new RpcException({
+        status: HttpStatus.NOT_FOUND,
+        message: RESPONSE_MESSAGES.userNotFound,
+      });
     }
 
     return user;
@@ -73,16 +78,12 @@ export class AuthService {
   }
 
   public async login(userPayload: LogInUserDto): Promise<AuthResponseDto> {
-    const user = await this.usersRepository.findOne({
-      where: {
-        email: userPayload.email
-      },
-      select: {
-        id: true,
-        email: true,
-        password: true,
-      }
-    });
+    const user = await this.usersRepository.createQueryBuilder('user')
+      .select(['user.id', 'user.email', 'user.password'])
+      .where('user.email = :email', { email: userPayload.email })
+      .leftJoinAndSelect('user.roles', 'roles')
+      .getOne();
+
 
     if (user === null) {
       throw new HttpException(
@@ -90,7 +91,8 @@ export class AuthService {
         HttpStatus.BAD_REQUEST,
       );
     }
-    const { id, email, password } = user;
+
+    const { id, email, password, roles } = user;
     const isPasswordValid = await this.authUtilsService.comparePasswords(
       userPayload.password,
       password,
@@ -100,6 +102,7 @@ export class AuthService {
       const [accessToken, refreshToken] = await this.authUtilsService.generateJwt({
         id,
         email,
+        roles
       });
 
       return {
@@ -137,14 +140,14 @@ export class AuthService {
     accessToken: string;
     refreshToken: string;
   }> {
-    const user = await this.usersRepository.findOneBy({ id });
+    const user = await this.getUserFromDb(id);
     if (user === null) {
       throw new HttpException(
         RESPONSE_MESSAGES.invalidUserCredentials,
         HttpStatus.UNAUTHORIZED,
       );
     }
-    const { email } = user;
+    const { email, roles } = user;
 
     // TODO: Validate Old Refresh token
     if (!oldRefreshToken) {
@@ -157,6 +160,7 @@ export class AuthService {
     const [accessToken, newRefreshToken] = await this.authUtilsService.generateJwt({
       email,
       id,
+      roles
     });
 
     return { accessToken, refreshToken: newRefreshToken };

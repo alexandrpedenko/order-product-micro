@@ -1,11 +1,12 @@
 import * as bcrypt from 'bcrypt';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Injectable } from '@nestjs/common';
+import { HttpStatus, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 
-import { User } from '@core/core';
+import { RESPONSE_MESSAGES, Role, User } from '@core/core';
+import { RpcException } from '@nestjs/microservices';
 
 @Injectable()
 export class AuthUtilsService {
@@ -15,7 +16,25 @@ export class AuthUtilsService {
 
     @InjectRepository(User)
     private usersRepository: Repository<User>,
-  ) {}
+  ) { }
+
+  async verifyJwt(jwt: string): Promise<any> {
+    if (!jwt) {
+      throw new RpcException({
+        status: HttpStatus.UNAUTHORIZED,
+        message: RESPONSE_MESSAGES.userUnauthorized,
+      });
+    }
+
+    try {
+      return await this.jwtService.verifyAsync(jwt, { secret: this.configService.get('JWT_SECRET') });
+    } catch (error) {
+      throw new RpcException({
+        status: HttpStatus.UNAUTHORIZED,
+        message: RESPONSE_MESSAGES.userUnauthorized,
+      });
+    }
+  }
 
   public async validateUserAndReturnIt(token: string): Promise<User | null> {
     try {
@@ -25,7 +44,7 @@ export class AuthUtilsService {
       if (user) {
         return user;
       }
-      
+
       return null
     } catch (error) {
       return null
@@ -44,9 +63,11 @@ export class AuthUtilsService {
   public async generateJwt({
     id,
     email,
+    roles
   }: {
     id: number;
     email: string;
+    roles: Role[];
   }): Promise<string[]> {
     const [accessToken, refreshToken] = await Promise.all([
       this.jwtService.signAsync(
@@ -54,6 +75,7 @@ export class AuthUtilsService {
           user: {
             id,
             email,
+            roles
           },
         },
         { secret: this.configService.get('JWT_SECRET'), expiresIn: '10m' },

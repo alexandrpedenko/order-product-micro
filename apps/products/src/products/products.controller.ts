@@ -1,10 +1,32 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, DefaultValuePipe, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, DefaultValuePipe, Query, Inject, HttpException, HttpStatus, UseGuards } from '@nestjs/common';
+import { ClientProxy } from '@nestjs/microservices';
+import { firstValueFrom } from 'rxjs';
+
+import { User, AuthCommands, CLIENT_PROXY_SERVICE, AuthGuard, Roles, UserRoles } from '@core/core';
 import { CreateProductDto, UpdateProductDto } from './dto/request';
 import { ProductsService } from './products.service';
 
 @Controller('products')
 export class ProductsController {
-  constructor(private readonly productsService: ProductsService) {}
+  constructor(
+    private readonly productsService: ProductsService,
+    @Inject(CLIENT_PROXY_SERVICE.AuthService) private readonly authService: ClientProxy,
+  ) { }
+
+  // NOTE: Test endpoint for rabbitmq functionality
+  @UseGuards(AuthGuard)
+  @Get('user/:id')
+  @Roles(UserRoles.Vendor, UserRoles.Customer)
+  async getUser(
+    @Param('id', ParseIntPipe) id: number,
+  ) {
+    return firstValueFrom(
+      this.authService.send<User>(
+        { cmd: AuthCommands.getUser },
+        { id },
+      )
+    );
+  }
 
   @Post()
   create(@Body() createProductDto: CreateProductDto) {

@@ -17,13 +17,17 @@ type ResponseBody = {
   statusCode: number;
 };
 
+interface CustomError extends Error {
+  status: number
+}
+
 @Catch()
 export class ExceptionsFilter implements ExceptionFilter {
   context: HttpArgumentsHost;
 
-  constructor(private readonly httpAdapterHost: HttpAdapterHost) {}
+  constructor(private readonly httpAdapterHost: HttpAdapterHost) { }
 
-  catch(exception: HttpException | Error, host: ArgumentsHost): void {
+  catch(exception: HttpException | CustomError, host: ArgumentsHost): void {
     this.context = host.switchToHttp();
 
     if (exception instanceof HttpException) {
@@ -48,13 +52,14 @@ export class ExceptionsFilter implements ExceptionFilter {
     this.reply(responseBody, httpStatus);
   }
 
-  private buildDefaultResponse(exception: Error): void {
+  private buildDefaultResponse(exception: CustomError): void {
+    const httpStatus = exception.status ? exception.status : HttpStatus.INTERNAL_SERVER_ERROR;
     const responseBody: ResponseBody = {
       message: exception.message,
-      statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+      statusCode: httpStatus,
     };
 
-    this.reply(responseBody, HttpStatus.INTERNAL_SERVER_ERROR);
+    this.reply(responseBody, httpStatus);
   }
 
   private reply(responseBody: ResponseBody, httpStatus: number) {

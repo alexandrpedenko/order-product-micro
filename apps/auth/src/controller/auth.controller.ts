@@ -9,17 +9,23 @@ import {
   Param,
   ParseIntPipe,
 } from '@nestjs/common';
+import { Ctx, MessagePattern, Payload, RmqContext } from '@nestjs/microservices';
 
 import { GetCurrentUserDta, Serialize } from '@core/core';
+import { AuthCommands } from '@core/core/rabbitmq';
 
 import { AuthResponseDto } from '../dto/response';
 import { CreateUserDto, LogInUserDto } from '../dto/request';
-import { AuthService } from '../services/auth.service';
 import { JwtAuthGuard, JwtRefreshAuthGuard } from '../guards';
+import { AuthService } from '../services/auth.service';
+import { AuthUtilsService } from '../services/auth-utils.service';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly authUtilsService: AuthUtilsService,
+  ) { }
 
   // NOTE: Test endpoint for getting user
   @Get('user/:id')
@@ -27,6 +33,21 @@ export class AuthController {
     @Param('id', ParseIntPipe) id: number,
   ) {
     return await this.authService.getUser(id);
+  }
+
+  // NOTE: Test returning user to products service
+  @MessagePattern({ cmd: AuthCommands.getUser })
+  async getUserById(
+    // @Ctx() context: RmqContext,
+    @Payload() user: { id: number },
+  ) {
+    return await this.authService.getUserForAnotherService(user.id);
+  }
+
+  // NOTE: AUTH Endpoint
+  @MessagePattern({ cmd: AuthCommands.authenticate })
+  async authenticate(@Payload() data: { jwt: string }) {
+    return this.authUtilsService.verifyJwt(data.jwt);
   }
 
   @Post('register')
