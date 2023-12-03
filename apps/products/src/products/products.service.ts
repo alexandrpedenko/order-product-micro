@@ -20,11 +20,8 @@ export class ProductsService {
       category: new Category(createProductDto.category)
     });
 
-
-    await this.productRepository.save(product);
-    return product;
+    return await this.productRepository.save(product);
   }
-
 
   async findAll(page: number, limit: number) {
     const queryBuilder = this.productRepository.createQueryBuilder('product')

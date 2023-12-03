@@ -18,7 +18,7 @@ export class AuthService {
     private usersRepository: Repository<User>,
   ) { }
 
-  // TODO: !!! Move to separate USER  repository !!!
+  // TODO: !!! Move to separate USER repository !!!
   async getUserFromDb(id: number) {
     return await this.usersRepository.createQueryBuilder('user')
       .select(['user.id', 'user.username'])
@@ -83,7 +83,6 @@ export class AuthService {
       .where('user.email = :email', { email: userPayload.email })
       .leftJoinAndSelect('user.roles', 'roles')
       .getOne();
-
 
     if (user === null) {
       throw new HttpException(
