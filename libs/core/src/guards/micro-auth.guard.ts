@@ -20,7 +20,7 @@ export class AuthGuard implements CanActivate {
   private readonly logger = new Logger(AuthGuard.name);
 
   constructor(
-    @Inject(CLIENT_PROXY_SERVICE.AuthService) private readonly authClient: ClientProxy,
+    @Inject(CLIENT_PROXY_SERVICE.Auth) private readonly authClient: ClientProxy,
     private readonly reflector: Reflector,
   ) { }
 
@@ -47,17 +47,10 @@ export class AuthGuard implements CanActivate {
           throw new UnauthorizedException();
         }),
         tap(({ user }) => {
-
           // NOTE: Check if the user has the required roles
-          if (roles) {
-            for (const role of roles) {
-              for (const userRole of user.roles) {
-                if (userRole.name === role) {
-                  return true;
-                }
-              }
-            }
+          const hasValidRole = roles?.some(role => user.roles.some(userRole => userRole.name === role));
 
+          if (!hasValidRole) {
             this.logger.error('The user does not have valid roles');
             throw new HttpException('You do not have permission', HttpStatus.FORBIDDEN);
           }

@@ -4,9 +4,14 @@ import { APP_FILTER } from '@nestjs/core';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 
 import {
+  Category,
+  CurrentUserGuard,
   DatabaseModule,
   ExceptionsFilter,
   LoggerModule,
+  Order,
+  OrderItem,
+  Product,
   Role,
   User
 } from '@core/core';
@@ -35,7 +40,7 @@ import { AuthUtilsService } from './services/auth-utils.service';
     }),
     LoggerModule,
     DatabaseModule,
-    DatabaseModule.forFeature([User, Role]),
+    DatabaseModule.forFeature([User, Role, Order, OrderItem, Product, Category]),
     RabbitModule
   ],
   controllers: [AuthController],
@@ -43,6 +48,7 @@ import { AuthUtilsService } from './services/auth-utils.service';
     AuthService,
     AuthUtilsService,
     JwtAuthGuard,
+    CurrentUserGuard,
     JwtStrategy,
     RefreshJwtStrategy,
     {
@@ -52,4 +58,4 @@ import { AuthUtilsService } from './services/auth-utils.service';
   ],
   exports: [AuthService, AuthUtilsService],
 })
-export class AuthModule {}
+export class AuthModule { }

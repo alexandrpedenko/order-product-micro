@@ -164,4 +164,21 @@ export class AuthService {
 
     return { accessToken, refreshToken: newRefreshToken };
   }
+
+  public async deleteUser(id: number): Promise<{ message: string }> {
+    const user = await this.usersRepository.findOneBy({
+      id,
+    });
+
+    if (user === null) {
+      throw new HttpException(
+        RESPONSE_MESSAGES.userNotFound,
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    await this.usersRepository.remove(user);
+
+    return { message: 'User successfully deleted' };
+  }
 }

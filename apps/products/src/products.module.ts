@@ -11,12 +11,15 @@ import {
   RabbitModule,
   RABBITMQ_QUEUE,
   CLIENT_PROXY_SERVICE,
+  User,
+  Order,
+  Role,
+  OrderItem,
 } from '@core/core';
 
-import { ProductsController } from './products/products.controller';
-import { ProductsService } from './products/products.service';
+import { ProductsController } from './products/controllers';
+import { ProductsService } from './products/services/products.service';
 import { CategoriesModule } from './categories/categories.module';
-import { OrdersModule } from './orders/orders.module';
 
 @Module({
   imports: [
@@ -25,10 +28,9 @@ import { OrdersModule } from './orders/orders.module';
     }),
     LoggerModule,
     DatabaseModule,
-    DatabaseModule.forFeature([Product, Category]),
-    RabbitModule.register(CLIENT_PROXY_SERVICE.AuthService, RABBITMQ_QUEUE.Auth),
+    DatabaseModule.forFeature([Product, Category, User, Role, Order, OrderItem]),
+    RabbitModule.register(CLIENT_PROXY_SERVICE.Auth, RABBITMQ_QUEUE.Auth),
     CategoriesModule,
-    OrdersModule
   ],
   controllers: [ProductsController],
   providers: [

@@ -1,10 +1,12 @@
 
 export const CLIENT_PROXY_SERVICE = {
-  AuthService: 'AuthService',
-  ProductsService: 'ProductsService',
+  Auth: 'AuthService',
+  Payments: 'PaymentService',
+  Notifications: 'NotificationService',
 }
 
 export const RABBITMQ_QUEUE = {
   Auth: 'auth_queue',
-  Products: 'products_queue',
+  Payments: 'payment_queue',
+  Notification: 'notification_queue',
 }

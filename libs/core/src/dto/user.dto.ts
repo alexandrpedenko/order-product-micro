@@ -1,8 +1,9 @@
-import { IsNumber, IsString, ValidateNested } from "class-validator";
+import { IsArray, IsNumber, IsString, ValidateNested } from "class-validator";
 import { RoleDto } from "./role.dto";
 import { Type } from "class-transformer";
+import { Order, User } from "../models";
 
-export class UserDto {
+export class UserDto implements User {
   @IsNumber()
   id: number;
 
@@ -18,4 +19,7 @@ export class UserDto {
   @Type(() => RoleDto)
   @ValidateNested()
   roles: RoleDto[];
+
+  @IsArray()
+  orders?: Order[];
 }

@@ -5,19 +5,27 @@ import { paginate } from 'nestjs-typeorm-paginate';
 
 import { Category, Product } from '@core/core';
 
-import { CreateProductDto, UpdateProductDto } from './dto/request';
+import { CreateProductDto, UpdateProductDto } from '../dto/request';
 
 @Injectable()
 export class ProductsService {
   constructor(
     @InjectRepository(Product)
     private productRepository: Repository<Product>,
+    @InjectRepository(Category)
+    private categoryRepository: Repository<Category>,
   ) { }
 
   async create(createProductDto: CreateProductDto) {
+    const category = await this.categoryRepository.findOneBy({ id: createProductDto.category.id });
+
+    if (!category) {
+      throw new NotFoundException('Category for  not found');
+    }
+
     const product = this.productRepository.create({
       ...createProductDto,
-      category: new Category(createProductDto.category)
+      category
     });
 
     return await this.productRepository.save(product);

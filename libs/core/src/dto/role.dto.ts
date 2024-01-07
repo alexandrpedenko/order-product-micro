@@ -1,12 +1,11 @@
 import { IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
+import { Role } from '../models';
 
-export class RoleDto {
-  @IsOptional()
+export class RoleDto implements Role {
   @IsNumber()
-  id?: number;
+  id: number;
 
-  @IsOptional()
   @IsString()
   @IsNotEmpty()
-  name?: string;
+  name: string;
 }

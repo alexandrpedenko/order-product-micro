@@ -3,3 +3,7 @@ export * from './role.dto';
 export * from './user.dto';
 export * from './category.dto';
 export * from './product.dto';
+export * from './card.dto';
+export * from './order.dto';
+export * from './order-item.dto';
+export * from './create-charge.dto';

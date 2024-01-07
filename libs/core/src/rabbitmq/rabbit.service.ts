@@ -4,7 +4,7 @@ import { RmqContext, RmqOptions, Transport } from '@nestjs/microservices';
 
 @Injectable()
 export class RabbitService {
-  constructor(private readonly configService: ConfigService) {}
+  constructor(private readonly configService: ConfigService) { }
 
   getRmqOptions(queue: string): RmqOptions {
     const USER = this.configService.get('RABBITMQ_USER');
@@ -24,7 +24,7 @@ export class RabbitService {
     };
   }
 
-  acknowledgeMessage(context: RmqContext) {
+  ackMessage(context: RmqContext) {
     const channel = context.getChannelRef();
     const message = context.getMessage();
     channel.ack(message);

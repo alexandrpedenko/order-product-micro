@@ -1,7 +1,8 @@
-import { Entity, Column, ManyToMany, JoinTable } from 'typeorm';
+import { Entity, Column, ManyToMany, JoinTable, OneToMany } from 'typeorm';
 
 import { AbstractEntity } from '../database';
 import { Role } from './role.entity';
+import { Order } from './order.entity';
 
 @Entity('users')
 export class User extends AbstractEntity<User> {
@@ -17,4 +18,9 @@ export class User extends AbstractEntity<User> {
   @ManyToMany(() => Role, { cascade: true })
   @JoinTable()
   roles: Role[];
+
+  @OneToMany(() => Order, order => order.userId, {
+    cascade: ['remove']
+  })
+  orders?: Order[];
 }

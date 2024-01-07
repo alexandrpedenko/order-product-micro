@@ -37,6 +37,44 @@ services:
       - .:/usr/src/app
       - /usr/src/app/node_modules
 
+  payments:
+    build:
+      context: .
+      dockerfile: ./apps/payments/Dockerfile
+      target: development
+    command: npm run start:dev payments
+    env_file:
+      - .env
+    ports:
+      - '3003:3003'
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+    depends_on:
+      - rabbitmq
+      - postgres
+    networks:
+      - postgres
+
+  purchasing:
+    build:
+      context: .
+      dockerfile: ./apps/purchasing/Dockerfile
+      target: development
+    command: npm run start:dev purchasing
+    env_file:
+      - .env
+    ports:
+      - '3002:3002'
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+    depends_on:
+      - rabbitmq
+      - postgres
+    networks:
+      - postgres
+
   postgres:
     image: postgres:15.1
     networks:

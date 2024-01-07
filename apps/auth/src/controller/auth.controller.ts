@@ -8,11 +8,12 @@ import {
   Get,
   Param,
   ParseIntPipe,
+  Delete,
 } from '@nestjs/common';
 import { Ctx, MessagePattern, Payload, RmqContext } from '@nestjs/microservices';
 
-import { GetCurrentUserDta, Serialize } from '@core/core';
-import { AuthCommands } from '@core/core/rabbitmq';
+import { CurrentUserGuard, GetCurrentUserDta, Serialize } from '@core/core';
+import { AuthCommands, RabbitService } from '@core/core/rabbitmq';
 
 import { AuthResponseDto } from '../dto/response';
 import { CreateUserDto, LogInUserDto } from '../dto/request';
@@ -25,6 +26,7 @@ export class AuthController {
   constructor(
     private readonly authService: AuthService,
     private readonly authUtilsService: AuthUtilsService,
+    private readonly rabbitmqService: RabbitService
   ) { }
 
   // NOTE: Test endpoint for getting user
@@ -38,15 +40,20 @@ export class AuthController {
   // NOTE: Test returning user to products service
   @MessagePattern({ cmd: AuthCommands.getUser })
   async getUserById(
-    // @Ctx() context: RmqContext,
+    @Ctx() context: RmqContext,
     @Payload() user: { id: number },
   ) {
+    this.rabbitmqService.ackMessage(context);
     return await this.authService.getUserForAnotherService(user.id);
   }
 
   // NOTE: AUTH Endpoint
   @MessagePattern({ cmd: AuthCommands.authenticate })
-  async authenticate(@Payload() data: { jwt: string }) {
+  async authenticate(
+    @Ctx() context: RmqContext,
+    @Payload() data: { jwt: string }
+  ) {
+    this.rabbitmqService.ackMessage(context);
     return this.authUtilsService.verifyJwt(data.jwt);
   }
 
@@ -72,6 +79,14 @@ export class AuthController {
     @GetCurrentUserDta('id') id: number,
   ): Promise<{ message: string }> {
     return await this.authService.logout(id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete('delete-user/:userId')
+  async deleteUser(
+    @Param('userId', ParseIntPipe) userId: number
+  ): Promise<{ message: string }> {
+    return await this.authService.deleteUser(userId);
   }
 
   @UseGuards(JwtRefreshAuthGuard)

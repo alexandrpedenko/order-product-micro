@@ -3,17 +3,17 @@ import { ClientProxy } from '@nestjs/microservices';
 import { firstValueFrom } from 'rxjs';
 
 import { User, AuthCommands, CLIENT_PROXY_SERVICE, AuthGuard, Roles, UserRoles } from '@core/core';
-import { CreateProductDto, UpdateProductDto } from './dto/request';
-import { ProductsService } from './products.service';
+import { CreateProductDto, UpdateProductDto } from '../dto/request';
+import { ProductsService } from '../services/products.service';
 
 @Controller('products')
 export class ProductsController {
   constructor(
     private readonly productsService: ProductsService,
-    @Inject(CLIENT_PROXY_SERVICE.AuthService) private readonly authService: ClientProxy,
+    @Inject(CLIENT_PROXY_SERVICE.Auth) private readonly authService: ClientProxy,
   ) { }
 
-  // NOTE: Test endpoint for rabbitmq functionality
+  // NOTE: Test endpoint for checking  rabbitmq functionality
   @UseGuards(AuthGuard)
   @Get('user/:id')
   @Roles(UserRoles.Vendor, UserRoles.Customer)
@@ -29,7 +29,7 @@ export class ProductsController {
   }
 
   @Post()
-  create(@Body() createProductDto: CreateProductDto) {
+  createProduct(@Body() createProductDto: CreateProductDto) {
     return this.productsService.create(createProductDto);
   }
 
